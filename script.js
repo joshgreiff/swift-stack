@@ -41,6 +41,11 @@ window.addEventListener('scroll', () => {
     }
 });
 
+// Initialize EmailJS
+(function() {
+    emailjs.init(emailConfig.publicKey);
+})();
+
 // Contact form handling
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
@@ -67,20 +72,37 @@ if (contactForm) {
             return;
         }
         
-        // Simulate form submission (replace with actual form handling)
         const submitButton = this.querySelector('button[type="submit"]');
         const originalText = submitButton.textContent;
         
         submitButton.textContent = 'Sending...';
         submitButton.disabled = true;
         
-        // Simulate API call
-        setTimeout(() => {
-            alert('Thank you for your message! We\'ll get back to you soon.');
-            this.reset();
-            submitButton.textContent = originalText;
-            submitButton.disabled = false;
-        }, 2000);
+        // Prepare email template parameters
+        const templateParams = {
+            from_name: name,
+            from_email: email,
+            business_name: business,
+            message: message,
+            to_name: 'SwiftStack Web'
+        };
+        
+        // Send email using EmailJS
+        emailjs.send(
+            emailConfig.serviceId, 
+            emailConfig.templateId, 
+            templateParams
+        )
+            .then(function(response) {
+                alert('Thank you for your message! We\'ll get back to you soon.');
+                contactForm.reset();
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            }, function(error) {
+                alert('Sorry, there was an error sending your message. Please try again or email us directly at hello@swiftstackweb.com');
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            });
     });
 }
 
