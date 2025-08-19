@@ -41,10 +41,30 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Initialize EmailJS
-(function() {
-    emailjs.init(emailConfig.publicKey);
-})();
+// Load EmailJS configuration and initialize
+let emailConfig = null;
+
+// Function to load config and initialize EmailJS
+function initializeEmailJS() {
+    // For Vercel deployment, we need to access environment variables differently
+    // Since this is a static site, we'll use a global variable approach
+    emailConfig = {
+        publicKey: window.EMAILJS_PUBLIC_KEY || 'YOUR_ACTUAL_PUBLIC_KEY',
+        serviceId: window.EMAILJS_SERVICE_ID || 'YOUR_ACTUAL_SERVICE_ID',
+        templateId: window.EMAILJS_TEMPLATE_ID || 'YOUR_ACTUAL_TEMPLATE_ID'
+    };
+    
+    // Initialize EmailJS if config is available
+    if (emailConfig && emailConfig.publicKey && emailConfig.publicKey !== 'YOUR_ACTUAL_PUBLIC_KEY') {
+        emailjs.init(emailConfig.publicKey);
+        console.log('EmailJS initialized successfully');
+    } else {
+        console.warn('EmailJS not configured properly - please check your environment variables');
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeEmailJS);
 
 // Contact form handling
 const contactForm = document.getElementById('contactForm');
@@ -86,6 +106,14 @@ if (contactForm) {
             message: message,
             to_name: 'SwiftStack Web'
         };
+        
+        // Check if EmailJS is properly configured
+        if (!emailConfig || !emailConfig.serviceId || !emailConfig.templateId) {
+            alert('Contact form is not properly configured. Please email us directly at hello@swiftstackweb.com');
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+            return;
+        }
         
         // Send email using EmailJS
         emailjs.send(
